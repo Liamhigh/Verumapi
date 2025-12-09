@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Part, GoogleGenAI, Content, GenerateContentResponse } from '@google/genai';
-import { ChatMessage as Message, GeolocationData } from './types';
+import { ChatMessage as Message, GeolocationData, CaseData } from './types';
 import { systemInstruction } from './services/geminiService';
+import { caseService } from './services/caseService';
 import Header from './components/Header';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
@@ -141,6 +142,7 @@ const parseActions = (text: string): string[] => {
 
 
 const App: React.FC = () => {
+  const [currentCase, setCurrentCase] = useState<CaseData | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'model',
@@ -151,6 +153,19 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const ai = useRef<GoogleGenAI | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Load existing case on mount
+  useEffect(() => {
+    const existingCase = caseService.getCurrentCase();
+    if (existingCase && existingCase.messages.length > 0) {
+      setCurrentCase(existingCase);
+      setMessages([messages[0], ...existingCase.messages]);
+    } else {
+      // Create a new case if none exists
+      const newCase = caseService.createNewCase();
+      setCurrentCase(newCase);
+    }
+  }, []);
 
   useEffect(() => {
     try {
@@ -169,6 +184,33 @@ const App: React.FC = () => {
   };
 
   useEffect(scrollToBottom, [messages]);
+
+  // Save messages to current case whenever they change
+  useEffect(() => {
+    if (currentCase && messages.length > 1) {
+      const caseMessages = messages.slice(1); // Exclude initial greeting
+      const updatedCase: CaseData = {
+        ...currentCase,
+        messages: caseMessages,
+      };
+      caseService.saveCurrentCase(updatedCase);
+      setCurrentCase(updatedCase);
+    }
+  }, [messages]);
+
+  const handleClearChat = useCallback(() => {
+    if (window.confirm('Are you sure you want to clear the chat and start a new case? The current case will be saved.')) {
+      const newCase = caseService.createNewCase();
+      setCurrentCase(newCase);
+      setMessages([
+        {
+          role: 'model',
+          text: "Verum Omnis session initialized. Forensic protocols engaged. Ready to apply AI forensics for truth in accordance with my constitutional mandate. How may I assist you?"
+        }
+      ]);
+      setError(null);
+    }
+  }, []);
 
   const handleSendMessage = useCallback(async (text: string, file: File | null) => {
     if (loading) return;
@@ -229,10 +271,18 @@ const App: React.FC = () => {
       
       const contents = [...history.slice(1), userTurn]; // remove my initial welcome message from history but keep user's first message
 
-      // Prepare system instruction with location context
-      const contextualSystemInstruction = geolocation 
-        ? systemInstruction + buildLocationContext(geolocation, timestamp)
-        : systemInstruction;
+      // Prepare system instruction with location and case context
+      let contextualSystemInstruction = systemInstruction;
+      
+      // Add case context if available
+      if (currentCase && currentCase.messages.length > 0) {
+        contextualSystemInstruction += caseService.buildCaseContext(currentCase);
+      }
+      
+      // Add location context if available
+      if (geolocation) {
+        contextualSystemInstruction += buildLocationContext(geolocation, timestamp);
+      }
 
       const result = await ai.current.models.generateContentStream({
           model: 'gemini-3-pro-preview',
@@ -315,11 +365,11 @@ const App: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [loading, messages]);
+  }, [loading, messages, currentCase]);
   
   return (
     <div className="flex flex-col h-screen bg-[#0A192F] text-slate-300 font-sans overflow-hidden">
-      <Header />
+      <Header onClearChat={handleClearChat} caseName={currentCase?.name} />
       <main className="flex-1 overflow-y-auto p-4 md:p-6">
         <div className="max-w-4xl mx-auto">
           {messages.length === 1 && !loading && <WelcomeScreen onPromptClick={(prompt) => handleSendMessage(prompt, null)} />}

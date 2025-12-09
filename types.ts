@@ -24,3 +24,12 @@ export interface ChatMessage {
   geolocation?: GeolocationData;
   timestamp?: string;
 }
+
+export interface CaseData {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  messages: ChatMessage[];
+  summary?: string;
+}
