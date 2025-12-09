@@ -23,6 +23,9 @@ export default defineConfig(({ mode }) => {
         rollupOptions: {
           external: ['@verum-omnis/ai-sdk']
         }
+      },
+      optimizeDeps: {
+        exclude: ['@verum-omnis/ai-sdk']
       }
     };
 });
