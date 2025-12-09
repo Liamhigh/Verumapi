@@ -7,6 +7,7 @@ import Header from './components/Header';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
 import WelcomeScreen from './components/WelcomeScreen';
+import PasswordGenerator from './components/PasswordGenerator';
 
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -61,6 +62,7 @@ const App: React.FC = () => {
   ]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPasswordGenerator, setShowPasswordGenerator] = useState<boolean>(false);
   const ai = useRef<GoogleGenAI | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -218,7 +220,24 @@ const App: React.FC = () => {
       <Header />
       <main className="flex-1 overflow-y-auto p-4 md:p-6">
         <div className="max-w-4xl mx-auto">
-          {messages.length === 1 && !loading && <WelcomeScreen onPromptClick={(prompt) => handleSendMessage(prompt, null)} />}
+          {messages.length === 1 && !loading && (
+            <>
+              <WelcomeScreen onPromptClick={(prompt) => handleSendMessage(prompt, null)} />
+              <div className="mt-8">
+                <button
+                  onClick={() => setShowPasswordGenerator(!showPasswordGenerator)}
+                  className="w-full bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 text-slate-200 font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  {showPasswordGenerator ? '✕ Close' : '🔑 Base64 Secret Generator'}
+                </button>
+              </div>
+              {showPasswordGenerator && (
+                <div className="mt-4">
+                  <PasswordGenerator onClose={() => setShowPasswordGenerator(false)} />
+                </div>
+              )}
+            </>
+          )}
           {messages.slice(1).map((msg, index) => (
             <ChatMessage key={index} message={msg} onActionClick={(actionText) => handleSendMessage(`Based on your analysis, please: ${actionText}`, null)} />
           ))}
