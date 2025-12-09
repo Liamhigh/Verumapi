@@ -11,6 +11,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     
+    permissions:
+      contents: write  # Required for creating releases
+      
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
