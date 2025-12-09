@@ -141,7 +141,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
   return (
     <div className={`flex items-start gap-4 my-6 ${!isModel ? 'flex-row-reverse' : ''}`}>
       <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center ${isModel ? 'bg-slate-700' : 'bg-sky-800'}`}>
-        {isModel ? <img src="/main_logo.png" alt="Verum Omnis" className="h-5 w-5" /> : <UserIcon className="h-5 w-5 text-sky-200" />}
+        {isModel ? <img src="/main_logo.png" alt="Verum Omnis" className="h-5 w-5 object-contain" /> : <UserIcon className="h-5 w-5 text-sky-200" />}
       </div>
       <div className={`prose prose-invert prose-p:text-slate-300 prose-p:my-0 max-w-full rounded-xl p-4 break-words ${isModel ? 'bg-slate-800' : 'bg-sky-900/50'}`}>
         {message.text === '' && isModel ? <TypingIndicator /> : <p className="whitespace-pre-wrap break-words">{message.text}</p>}
