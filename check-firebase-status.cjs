@@ -96,8 +96,8 @@ function main() {
     log('✓ Build directory (dist/) exists and has files', 'green');
     checks.build = true;
   } else {
-    log('⚠ Build directory (dist/) is empty or doesn\'t exist', 'yellow');
-    console.log('  Run \'npm run build\' to create build artifacts');
+    log(`⚠ Build directory (dist/) is empty or doesn't exist`, 'yellow');
+    console.log(`  Run 'npm run build' to create build artifacts`);
   }
   console.log('');
 
@@ -120,8 +120,8 @@ function main() {
         }
       }
     } else {
-      log('⚠ Not logged into Firebase', 'yellow');
-      console.log('  Run \'firebase login\' to authenticate');
+      log(`⚠ Not logged into Firebase`, 'yellow');
+      console.log(`  Run 'firebase login' to authenticate`);
     }
     console.log('');
   }

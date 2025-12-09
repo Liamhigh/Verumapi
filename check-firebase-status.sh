@@ -3,6 +3,8 @@
 # Firebase Deployment Status Checker
 # This script checks if Firebase is configured and deployed
 
+set -u  # Exit on undefined variables
+
 echo "=============================================="
 echo "  Firebase Deployment Status Check"
 echo "=============================================="
