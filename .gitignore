@@ -22,3 +22,21 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.firebase-debug.log
+
+# Capacitor
+android/
+ios/
+*.keystore
+*.jks
+
+# Environment
+.env
+.env.local
+.env.production
