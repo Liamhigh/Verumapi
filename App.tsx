@@ -6,6 +6,7 @@ import Header from './components/Header';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
 import WelcomeScreen from './components/WelcomeScreen';
+import LandingPage from './components/LandingPage';
 
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -52,6 +53,7 @@ const parseActions = (text: string): string[] => {
 
 
 const App: React.FC = () => {
+  const [showLandingPage, setShowLandingPage] = useState<boolean>(true);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'model',
@@ -191,6 +193,10 @@ const App: React.FC = () => {
     }
   }, [loading, messages]);
   
+  if (showLandingPage) {
+    return <LandingPage onEnter={() => setShowLandingPage(false)} />;
+  }
+
   return (
     <div className="flex flex-col h-screen bg-[#0A192F] text-slate-300 font-sans overflow-hidden">
       <Header />
