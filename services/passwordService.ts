@@ -11,7 +11,7 @@
 export function generateSecurePassword(length: number = 68): string {
   // Validate minimum length
   if (length < 1) {
-    throw new Error('Password length must be at least 1 character');
+    throw new Error('Secret length must be at least 1 character');
   }
   
   // Calculate how many random bytes we need
@@ -24,25 +24,25 @@ export function generateSecurePassword(length: number = 68): string {
   const randomBytes = new Uint8Array(bytesNeeded);
   crypto.getRandomValues(randomBytes);
   
-  // Convert to Base64
-  let base64 = btoa(String.fromCharCode(...randomBytes));
+  // Convert to Base64 using Array.from to avoid stack overflow with spread operator
+  const base64 = btoa(Array.from(randomBytes, byte => String.fromCharCode(byte)).join(''));
   
   // Remove any padding characters (=) and trim to exact length
-  base64 = base64.replace(/=/g, '');
+  let result = base64.replace(/=/g, '');
   
   // If we have more characters than needed, trim to exact length
-  if (base64.length > length) {
-    base64 = base64.substring(0, length);
-  } else if (base64.length < length) {
+  if (result.length > length) {
+    result = result.substring(0, length);
+  } else if (result.length < length) {
     // If we need more characters, generate additional bytes
-    while (base64.length < length) {
+    while (result.length < length) {
       const additionalBytes = new Uint8Array(3);
       crypto.getRandomValues(additionalBytes);
-      const additionalB64 = btoa(String.fromCharCode(...additionalBytes)).replace(/=/g, '');
-      base64 += additionalB64;
+      const additionalB64 = btoa(Array.from(additionalBytes, byte => String.fromCharCode(byte)).join('')).replace(/=/g, '');
+      result += additionalB64;
     }
-    base64 = base64.substring(0, length);
+    result = result.substring(0, length);
   }
   
-  return base64;
+  return result;
 }

@@ -24,9 +24,9 @@ const PasswordGenerator: React.FC<PasswordGeneratorProps> = ({ onClose }) => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } catch (err) {
-        console.error('Failed to copy password to clipboard:', err);
-        // Fallback: user can still manually copy the password
-        alert('Failed to copy to clipboard. Please copy the password manually.');
+        console.error('Failed to copy secret to clipboard:', err);
+        // Fallback: user can still manually copy the secret
+        alert('Failed to copy to clipboard. Please copy the secret manually.');
       }
     }
   };
