@@ -2,7 +2,13 @@
 import React from 'react';
 
 export const VerumOmnisLogo = ({ className, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => (
-    <img src="/main_logo.png" alt="Verum Omnis" className={className} {...props} />
+    <img 
+        src="/main_logo.png" 
+        alt="Verum Omnis" 
+        className={className} 
+        style={{ objectFit: 'contain', maxWidth: '100%', height: 'auto' }}
+        {...props} 
+    />
 );
 
 export const UserIcon = (props: React.SVGProps<SVGSVGElement>) => (
