@@ -16,8 +16,13 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
   const pdfContentRef = React.useRef<HTMLDivElement>(null);
 
   const handleDownloadPdf = async () => {
+    if (!message.seal) return;
+    
     const source = pdfContentRef.current;
-    if (!source || !message.seal) return;
+    if (!source) {
+      console.error('PDF content not available');
+      return;
+    }
 
     const qrCodeDataUrl = await QRCode.toDataURL(message.seal, { width: 120, margin: 1 });
 
@@ -184,6 +189,32 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
             <div style={{ position: 'fixed', left: '-9999px', top: 0, width: '800px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
               <div ref={pdfContentRef} style={{ padding: '48px', backgroundColor: '#0A192F', color: '#cbd5e1' }}>
                   {renderPdfContent(message.pdfContent)}
+              </div>
+            </div>
+        )}
+        {message.seal && !message.isPdfContent && (
+            <div style={{ position: 'fixed', left: '-9999px', top: 0, width: '800px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+              <div ref={pdfContentRef} style={{ padding: '48px 60px', backgroundColor: '#0A192F', color: '#cbd5e1' }}>
+                <div style={{ textAlign: 'center', marginBottom: '32px', paddingBottom: '24px', borderBottom: '3px solid #475569' }}>
+                  <h1 style={{color: '#38bdf8', fontSize: '32px', fontWeight: 'bold', margin: '0 0 12px 0', letterSpacing: '0.5px'}}>VERUM OMNIS</h1>
+                  <p style={{color: '#94a3b8', fontSize: '14px', margin: '0', textTransform: 'uppercase', letterSpacing: '2px'}}>Forensic AI Analysis Report</p>
+                  <p style={{color: '#64748b', fontSize: '11px', margin: '8px 0 0 0'}}>Patent Pending • Legally Validated</p>
+                </div>
+                <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: '#1e293b', borderRadius: '8px', borderLeft: '4px solid #38bdf8' }}>
+                  <p style={{color: '#94a3b8', fontSize: '11px', margin: '0 0 8px 0', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600'}}>Document Metadata</p>
+                  <p style={{color: '#cbd5e1', fontSize: '12px', margin: '4px 0', lineHeight: '1.6'}}><strong>Report ID:</strong> {message.seal?.substring(0, 16)}</p>
+                  <p style={{color: '#cbd5e1', fontSize: '12px', margin: '4px 0', lineHeight: '1.6'}}><strong>Generated:</strong> {new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' })}</p>
+                  <p style={{color: '#cbd5e1', fontSize: '12px', margin: '4px 0', lineHeight: '1.6'}}><strong>Seal Type:</strong> SHA-512 Forensic Hash</p>
+                </div>
+                <div style={{ marginBottom: '32px' }}>
+                  <h2 style={{color: '#e2e8f0', fontSize: '20px', fontWeight: 'bold', margin: '24px 0 16px 0', paddingBottom: '8px', borderBottom: '2px solid #334155'}}>Analysis Content</h2>
+                  <div style={{ margin: '0', lineHeight: '1.8', fontSize: '14px', whiteSpace: 'pre-wrap', color: '#cbd5e1' }}>{message.text}</div>
+                </div>
+                <div style={{ marginTop: '40px', padding: '20px', backgroundColor: '#1e293b', borderRadius: '8px', borderTop: '3px solid #38bdf8' }}>
+                  <p style={{color: '#94a3b8', fontSize: '11px', margin: '0 0 8px 0', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600'}}>Forensic Seal (SHA-512)</p>
+                  <p style={{color: '#64748b', fontSize: '9px', margin: '0', fontFamily: 'monospace', wordBreak: 'break-all', lineHeight: '1.4'}}>{message.seal}</p>
+                  <p style={{color: '#64748b', fontSize: '10px', margin: '12px 0 0 0', fontStyle: 'italic'}}>This document is cryptographically sealed and validated by Verum Omnis AI forensic protocols.</p>
+                </div>
               </div>
             </div>
         )}
