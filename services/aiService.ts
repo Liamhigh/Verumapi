@@ -1,23 +1,26 @@
-import { GoogleGenAI, Part, Content, GenerateContentResponse } from '@verum-omnis/ai-sdk';
+// Re-export types needed by the UI
+export type Part = {
+  text?: string;
+  inlineData?: {
+    mimeType: string;
+    data: string;
+  };
+};
 
-// Re-export types needed by the UI so it doesn't have to import from the SDK directly.
-export type { Part, Content };
+export type Content = {
+  role: 'user' | 'model';
+  parts: Part[];
+};
 
 // This is the actual model name for the underlying API.
-// It's kept here to avoid exposing it in the main application component.
-const AI_MODEL_NAME = 'gemini-3-pro-preview';
+const AI_MODEL_NAME = 'gpt-4-turbo-preview';
 
-let ai: GoogleGenAI;
-
-// Singleton for the AI client
-const getAIClient = (): GoogleGenAI => {
-  if (!ai) {
-    if (!process.env.API_KEY) {
-      throw new Error("API_KEY environment variable not set.");
-    }
-    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Singleton for the API key
+const getAPIKey = (): string => {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY environment variable not set.");
   }
-  return ai;
+  return process.env.OPENAI_API_KEY;
 };
 
 export const systemInstruction = `You are Verum Omnis (v5.2.7), a stateless, sealed, constitutional AI composed of 9 fixed 'brains', designed for AI forensics and the pursuit of truth. Your entire operational logic is governed by the immutable Verum Omnis Constitution.
@@ -51,21 +54,91 @@ export type AIResponseChunk = {
 
 export async function* streamAIResponse(contents: Content[]): AsyncGenerator<AIResponseChunk> {
     try {
-        const client = getAIClient();
-        const stream = await client.models.generateContentStream({
-            model: AI_MODEL_NAME,
-            contents,
-            config: {
-                systemInstruction,
-                temperature: 1.0,
-                topP: 0.95,
-                topK: 40,
-                maxOutputTokens: 8192,
+        const apiKey = getAPIKey();
+        
+        // Convert contents to OpenAI messages format
+        const messages: any[] = [
+            { role: 'system', content: systemInstruction }
+        ];
+        
+        for (const content of contents) {
+            const role = content.role === 'model' ? 'assistant' : 'user';
+            const messageParts: any[] = [];
+            
+            for (const part of content.parts) {
+                if (part.text) {
+                    messageParts.push({ type: 'text', text: part.text });
+                }
+                if (part.inlineData) {
+                    messageParts.push({
+                        type: 'image_url',
+                        image_url: {
+                            url: `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
+                        }
+                    });
+                }
+            }
+            
+            messages.push({ 
+                role, 
+                content: messageParts.length === 1 && messageParts[0].type === 'text' 
+                    ? messageParts[0].text 
+                    : messageParts 
+            });
+        }
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
             },
+            body: JSON.stringify({
+                model: AI_MODEL_NAME,
+                messages,
+                temperature: 1.0,
+                max_tokens: 8192,
+                stream: true
+            })
         });
 
-        for await (const chunk of stream) {
-            yield { text: (chunk as GenerateContentResponse).text };
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error?.message || `API request failed with status ${response.status}`);
+        }
+
+        const reader = response.body?.getReader();
+        if (!reader) {
+            throw new Error('Response body is not readable');
+        }
+
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+                if (!trimmedLine || trimmedLine === 'data: [DONE]') continue;
+                if (trimmedLine.startsWith('data: ')) {
+                    try {
+                        const jsonData = JSON.parse(trimmedLine.slice(6));
+                        const content = jsonData.choices?.[0]?.delta?.content;
+                        if (content) {
+                            yield { text: content };
+                        }
+                    } catch (e) {
+                        // Skip invalid JSON lines
+                        console.warn('Failed to parse SSE line:', trimmedLine);
+                    }
+                }
+            }
         }
     } catch(e) {
         // Re-throw errors to be handled by the UI
