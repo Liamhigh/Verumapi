@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Part, GoogleGenAI, Content, GenerateContentResponse } from '@google/genai';
-import { ChatMessage as Message } from './types';
+import { ChatMessage as Message, GeolocationData } from './types';
 import { systemInstruction } from './services/geminiService';
 import Header from './components/Header';
 import ChatMessage from './components/ChatMessage';
@@ -18,6 +18,56 @@ const fileToBase64 = (file: File): Promise<string> => {
       resolve(base64String);
     };
     reader.onerror = (error) => reject(error);
+  });
+};
+
+const getGeolocation = (): Promise<GeolocationData | null> => {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      console.warn('Geolocation is not supported by this browser.');
+      resolve(null);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        const timestamp = position.timestamp;
+        
+        // Get timezone
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        
+        // Try to get location details via reverse geocoding
+        let city, country;
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`
+          );
+          if (response.ok) {
+            const data = await response.json();
+            city = data.address?.city || data.address?.town || data.address?.village;
+            country = data.address?.country;
+          }
+        } catch (error) {
+          console.warn('Could not fetch location details:', error);
+        }
+
+        resolve({
+          latitude,
+          longitude,
+          accuracy,
+          timestamp,
+          city,
+          country,
+          timezone
+        });
+      },
+      (error) => {
+        console.warn('Geolocation error:', error.message);
+        resolve(null);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
   });
 };
 
@@ -88,6 +138,10 @@ const App: React.FC = () => {
     setError(null);
     setLoading(true);
 
+    // Capture geolocation and timestamp
+    const geolocation = await getGeolocation();
+    const timestamp = new Date().toISOString();
+
     let fileData: { name: string; type: string; data: string } | undefined;
     if (file) {
         const data = await fileToBase64(file);
@@ -98,12 +152,19 @@ const App: React.FC = () => {
       role: 'user', 
       text,
       file: fileData,
+      geolocation: geolocation || undefined,
+      timestamp,
     };
     
     const currentMessages = [...messages, userMessage];
     setMessages(currentMessages);
 
-    const aiMessagePlaceholder: Message = { role: 'model', text: '' };
+    const aiMessagePlaceholder: Message = { 
+      role: 'model', 
+      text: '',
+      timestamp: new Date().toISOString(),
+      geolocation: geolocation || undefined,
+    };
     setMessages((prev) => [...prev, aiMessagePlaceholder]);
 
     try {
@@ -130,11 +191,18 @@ const App: React.FC = () => {
       
       const contents = [...history.slice(1), userTurn]; // remove my initial welcome message from history but keep user's first message
 
+      // Prepare system instruction with location context
+      let contextualSystemInstruction = systemInstruction;
+      if (geolocation) {
+        const locationInfo = `\n\nCURRENT USER LOCATION CONTEXT:\n- Coordinates: ${geolocation.latitude.toFixed(6)}, ${geolocation.longitude.toFixed(6)}\n- Accuracy: ${geolocation.accuracy.toFixed(0)}m${geolocation.city ? `\n- City: ${geolocation.city}` : ''}${geolocation.country ? `\n- Country: ${geolocation.country}` : ''}${geolocation.timezone ? `\n- Timezone: ${geolocation.timezone}` : ''}\n- Report Timestamp: ${timestamp}\n\nUse this location information to determine the applicable jurisdiction for legal analysis. Consider local, state/provincial, and national laws that apply to this geographic location.`;
+        contextualSystemInstruction = systemInstruction + locationInfo;
+      }
+
       const result = await ai.current.models.generateContentStream({
           model: 'gemini-3-pro-preview',
           contents,
           config: {
-              systemInstruction,
+              systemInstruction: contextualSystemInstruction,
           }
       });
       

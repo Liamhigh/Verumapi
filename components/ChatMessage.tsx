@@ -4,7 +4,7 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import QRCode from 'qrcode';
 import { ChatMessage as Message } from '../types';
-import { UserIcon, VerumOmnisLogo, PaperclipIcon, ShieldCheckIcon, DownloadIcon } from './Icons';
+import { UserIcon, VerumOmnisLogo, PaperclipIcon, ShieldCheckIcon, DownloadIcon, MapPinIcon, ClockIcon } from './Icons';
 
 interface ChatMessageProps {
   message: Message;
@@ -151,6 +151,34 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
                 <span className="truncate font-mono">{message.file.name}</span>
             </div>
         )}
+        {message.timestamp && (
+            <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
+                <ClockIcon className="h-4 w-4 flex-shrink-0" />
+                <span>{new Date(message.timestamp).toLocaleString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    second: '2-digit',
+                    timeZoneName: 'short'
+                })}</span>
+            </div>
+        )}
+        {message.geolocation && (
+            <div className="mt-2 flex items-start gap-2 text-xs text-slate-500">
+                <MapPinIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-0.5">
+                    <span>{message.geolocation.city && message.geolocation.country 
+                        ? `${message.geolocation.city}, ${message.geolocation.country}` 
+                        : message.geolocation.country || 'Location captured'}</span>
+                    <span className="font-mono text-[10px]">
+                        {message.geolocation.latitude.toFixed(6)}, {message.geolocation.longitude.toFixed(6)}
+                        {message.geolocation.timezone && ` • ${message.geolocation.timezone}`}
+                    </span>
+                </div>
+            </div>
+        )}
         {message.seal && (
             <div className="mt-4 border-t border-slate-700 pt-3">
                 <h4 className="flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-sky-400/80">
@@ -177,6 +205,34 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
             <>
                 <div style={{ position: 'fixed', left: '-9999px', top: 0, width: '800px', fontFamily: 'sans-serif' }}>
                   <div ref={pdfContentRef} className="p-8 bg-[#0A192F] text-slate-300">
+                      {message.timestamp && (
+                          <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px' }}>
+                              <strong>Report Generated:</strong> {new Date(message.timestamp).toLocaleString('en-US', { 
+                                  year: 'numeric', 
+                                  month: 'short', 
+                                  day: 'numeric', 
+                                  hour: '2-digit', 
+                                  minute: '2-digit', 
+                                  second: '2-digit',
+                                  timeZoneName: 'short'
+                              })}
+                          </div>
+                      )}
+                      {message.geolocation && (
+                          <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '16px' }}>
+                              <strong>Jurisdiction:</strong> {message.geolocation.city && message.geolocation.country 
+                                  ? `${message.geolocation.city}, ${message.geolocation.country}` 
+                                  : message.geolocation.country || 'Location captured'}
+                              <br />
+                              <strong>Coordinates:</strong> {message.geolocation.latitude.toFixed(6)}, {message.geolocation.longitude.toFixed(6)}
+                              {message.geolocation.timezone && (
+                                  <>
+                                      <br />
+                                      <strong>Timezone:</strong> {message.geolocation.timezone}
+                                  </>
+                              )}
+                          </div>
+                      )}
                       {renderPdfContent(message.pdfContent)}
                   </div>
                 </div>
