@@ -20,10 +20,10 @@ Go to: **Settings → Secrets and variables → Actions → New repository secre
 
 ### Application Configuration
 
-- [ ] **GEMINI_API_KEY**
-  - Content: Your Google Gemini API key
-  - How to get: https://ai.google.dev/
-  - Format: Plain text API key
+- [ ] **OPENAI_API_KEY**
+  - Content: Your OpenAI API key
+  - How to get: https://platform.openai.com/api-keys
+  - Format: Plain text API key (starts with sk-)
 
 ### Android APK Signing
 

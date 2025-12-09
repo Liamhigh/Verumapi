@@ -32,7 +32,7 @@ Add the following secrets to your GitHub repository (Settings → Secrets and va
 #### Firebase Secrets:
 - `FIREBASE_SERVICE_ACCOUNT`: The entire content of the service account JSON file you downloaded
 - `FIREBASE_PROJECT_ID`: Your Firebase project ID
-- `GEMINI_API_KEY`: Your Gemini API key for the application
+- `OPENAI_API_KEY`: Your OpenAI API key for the application
 
 #### Android Keystore Secrets:
 - `ANDROID_KEYSTORE_BASE64`: Base64 encoded keystore file (see below)
@@ -176,7 +176,7 @@ Then build the APK from Android Studio.
 
 ## Additional Notes
 
-- The web app requires a `GEMINI_API_KEY` environment variable to function
+- The web app requires an `OPENAI_API_KEY` environment variable to function
 - Firebase will serve the built files from the `dist` directory
 - The Android app ID is `com.verumomnis.app`
 - Keystore files are excluded from git for security
