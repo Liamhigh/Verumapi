@@ -33,4 +33,26 @@ dist-ssr
 
 # Vercel
 .vercel
+
+# Firebase
+.firebase
+.firebaserc
+
+# Android
+*.keystore
+*.keystore.base64
+keystore.properties
+android/app/build
+android/app/release
+android/.gradle
+android/build
+*.apk
+*.aab
+
+# Capacitor
+.capacitor
+ios
+android/app/src/main/assets/public
+
+# Package lock
 package-lock.json
