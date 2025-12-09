@@ -71,7 +71,7 @@ const App: React.FC = () => {
       }
       ai.current = new GoogleGenAI({ apiKey: process.env.API_KEY });
     } catch (e) {
-      setError("Failed to initialize AI session. Please check your API key.");
+      setError("Failed to initialize AI session. Please create a .env.local file with your GEMINI_API_KEY. See .env.example for reference.");
       console.error(e);
     }
   }, []);
