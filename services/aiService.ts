@@ -13,7 +13,7 @@ let ai: GoogleGenAI;
 const getAIClient = (): GoogleGenAI => {
   if (!ai) {
     if (!process.env.API_KEY) {
-      throw new Error("API_KEY environment variable not set.");
+      throw new Error("API key is not configured. Please set the OPENAI_API_KEY environment variable. For local development, create a .env.local file with your API key. For deployment, set it in your hosting platform's environment variables.");
     }
     ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
