@@ -1,0 +1,42 @@
+# Firebase Hosting
+
+## Firebaserc Configuration
+
+The `.firebaserc` file should contain your Firebase project ID. Create this file with:
+
+```json
+{
+  "projects": {
+    "default": "your-firebase-project-id"
+  }
+}
+```
+
+Replace `your-firebase-project-id` with your actual Firebase project ID.
+
+## Deployment
+
+To deploy manually:
+```bash
+npm run build
+firebase deploy --only hosting
+```
+
+## CI/CD
+
+Firebase deployment is automated via GitHub Actions. See `.github/workflows/firebase-deploy.yml`.
+
+### Required Secrets
+
+Add the following secret to your GitHub repository:
+- `FIREBASE_TOKEN`: Generate with `firebase login:ci`
+
+## Project Setup
+
+If you haven't set up a Firebase project yet:
+
+1. Go to https://console.firebase.google.com
+2. Create a new project or select existing
+3. Enable Hosting in the Firebase console
+4. Run `firebase init hosting` locally and select your project
+5. Copy the project ID to `.firebaserc`
