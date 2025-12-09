@@ -18,3 +18,22 @@ View your app in AI Studio: https://ai.studio/apps/drive/1dYsvowYp1Gf55uhp3B5W2e
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## Check Firebase Deployment Status
+
+To check if Firebase is configured and deployed:
+
+```bash
+npm run check-firebase
+```
+
+Or run the script directly:
+```bash
+node check-firebase-status.cjs
+# or on Unix/Linux/macOS:
+./check-firebase-status.sh
+```
+
+For detailed deployment information, see [FIREBASE_DEPLOYMENT_STATUS.md](FIREBASE_DEPLOYMENT_STATUS.md).
+
+**Current Status**: Firebase is NOT deployed from the main branch. See the deployment status file for setup instructions.
