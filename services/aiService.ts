@@ -57,6 +57,10 @@ export async function* streamAIResponse(contents: Content[]): AsyncGenerator<AIR
             contents,
             config: {
                 systemInstruction,
+                temperature: 1.0,
+                topP: 0.95,
+                topK: 40,
+                maxOutputTokens: 8192,
             },
         });
 
