@@ -12,6 +12,26 @@ export type Content = {
   parts: Part[];
 };
 
+// OpenAI message types
+type OpenAITextContent = {
+  type: 'text';
+  text: string;
+};
+
+type OpenAIImageContent = {
+  type: 'image_url';
+  image_url: {
+    url: string;
+  };
+};
+
+type OpenAIMessageContent = string | (OpenAITextContent | OpenAIImageContent)[];
+
+type OpenAIMessage = {
+  role: 'system' | 'user' | 'assistant';
+  content: OpenAIMessageContent;
+};
+
 // This is the actual model name for the underlying API.
 const AI_MODEL_NAME = 'gpt-4-turbo-preview';
 
@@ -57,13 +77,13 @@ export async function* streamAIResponse(contents: Content[]): AsyncGenerator<AIR
         const apiKey = getAPIKey();
         
         // Convert contents to OpenAI messages format
-        const messages: any[] = [
+        const messages: OpenAIMessage[] = [
             { role: 'system', content: systemInstruction }
         ];
         
         for (const content of contents) {
             const role = content.role === 'model' ? 'assistant' : 'user';
-            const messageParts: any[] = [];
+            const messageParts: (OpenAITextContent | OpenAIImageContent)[] = [];
             
             for (const part of content.parts) {
                 if (part.text) {
