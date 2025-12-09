@@ -93,9 +93,9 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
             const cells = line.split('|').slice(1, -1).map(c => c.trim());
             
             if (lines[i+1] && lines[i+1].match(/^\|\s*:-/)) {
-                 tableHeader = <thead key={`th-${i}`}><tr>{cells.map((cell, c_idx) => <th key={`th-cell-${i}-${c_idx}`} style={{border: '1px solid #475569', padding: '8px', textAlign: 'left', backgroundColor: '#1e293b' }}>{cell}</th>)}</tr></thead>;
+                 tableHeader = <thead key={`th-${i}`}><tr>{cells.map((cell, c_idx) => <th key={`th-cell-${i}-${c_idx}`} style={{border: '1px solid #475569', padding: '10px', textAlign: 'left', backgroundColor: '#1e293b', fontWeight: 'bold', fontSize: '14px' }}>{cell}</th>)}</tr></thead>;
             } else if (!line.match(/^\|\s*:-/)) { 
-                tableRows.push(<tr key={`tr-${i}`}>{cells.map((cell, c_idx) => <td key={`td-${i}-${c_idx}`} style={{border: '1px solid #475569', padding: '8px'}}>{cell}</td>)}</tr>);
+                tableRows.push(<tr key={`tr-${i}`}>{cells.map((cell, c_idx) => <td key={`td-${i}-${c_idx}`} style={{border: '1px solid #475569', padding: '10px', fontSize: '13px', lineHeight: '1.6'}}>{cell}</td>)}</tr>);
             }
         } else {
             if (inTable) {
@@ -110,11 +110,11 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
                 inTable = false;
             }
 
-            if (line.match(/^#\s/)) elements.push(<h1 key={i} style={{color: '#cbd5e1', fontSize: '2em', margin: '0.67em 0'}}>{line.substring(2)}</h1>);
-            else if (line.match(/^##\s/)) elements.push(<h2 key={i} style={{color: '#cbd5e1', fontSize: '1.5em', margin: '0.83em 0'}}>{line.substring(3)}</h2>);
-            else if (line.match(/^###\s/)) elements.push(<h3 key={i} style={{color: '#cbd5e1', fontSize: '1.17em', margin: '1em 0'}}>{line.substring(4)}</h3>);
-            else if (line.trim() === '---') elements.push(<hr key={i} style={{borderTop: '1px solid #475569', margin: '1em 0'}} />);
-            else elements.push(<p key={i} style={{ margin: '0.5em 0', whiteSpace: 'pre-wrap' }}>{line || '\u00A0'}</p>);
+            if (line.match(/^#\s/)) elements.push(<h1 key={i} style={{color: '#e2e8f0', fontSize: '28px', fontWeight: 'bold', margin: '24px 0 16px 0', paddingBottom: '8px', borderBottom: '2px solid #475569'}}>{line.substring(2)}</h1>);
+            else if (line.match(/^##\s/)) elements.push(<h2 key={i} style={{color: '#cbd5e1', fontSize: '22px', fontWeight: 'bold', margin: '20px 0 12px 0'}}>{line.substring(3)}</h2>);
+            else if (line.match(/^###\s/)) elements.push(<h3 key={i} style={{color: '#cbd5e1', fontSize: '18px', fontWeight: '600', margin: '16px 0 10px 0'}}>{line.substring(4)}</h3>);
+            else if (line.trim() === '---') elements.push(<hr key={i} style={{borderTop: '2px solid #475569', margin: '20px 0'}} />);
+            else elements.push(<p key={i} style={{ margin: '8px 0', lineHeight: '1.8', fontSize: '14px', whiteSpace: 'pre-wrap' }}>{line || '\u00A0'}</p>);
         }
     }
 
@@ -181,8 +181,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
             </div>
         )}
         {message.isPdfContent && message.pdfContent && (
-            <div style={{ position: 'fixed', left: '-9999px', top: 0, width: '800px', fontFamily: 'sans-serif' }}>
-              <div ref={pdfContentRef} className="p-8 bg-[#0A192F] text-slate-300">
+            <div style={{ position: 'fixed', left: '-9999px', top: 0, width: '800px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+              <div ref={pdfContentRef} style={{ padding: '48px', backgroundColor: '#0A192F', color: '#cbd5e1' }}>
                   {renderPdfContent(message.pdfContent)}
               </div>
             </div>
