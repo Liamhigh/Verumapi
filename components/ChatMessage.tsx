@@ -11,6 +11,32 @@ interface ChatMessageProps {
   onActionClick: (actionText: string) => void;
 }
 
+const formatTimestamp = (timestamp: string): string => {
+  return new Date(timestamp).toLocaleString('en-US', { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric', 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    second: '2-digit',
+    timeZoneName: 'short'
+  });
+};
+
+const formatLocation = (geolocation: Message['geolocation']): { display: string; coords: string } | null => {
+  if (!geolocation) return null;
+  
+  const display = geolocation.city && geolocation.country 
+    ? `${geolocation.city}, ${geolocation.country}` 
+    : geolocation.country || 'Location captured';
+    
+  const coords = `${geolocation.latitude.toFixed(6)}, ${geolocation.longitude.toFixed(6)}${
+    geolocation.timezone ? ` • ${geolocation.timezone}` : ''
+  }`;
+  
+  return { display, coords };
+};
+
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => {
   const isModel = message.role === 'model';
   const pdfContentRef = React.useRef<HTMLDivElement>(null);
@@ -154,31 +180,21 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
         {message.timestamp && (
             <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
                 <ClockIcon className="h-4 w-4 flex-shrink-0" />
-                <span>{new Date(message.timestamp).toLocaleString('en-US', { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric', 
-                    hour: '2-digit', 
-                    minute: '2-digit', 
-                    second: '2-digit',
-                    timeZoneName: 'short'
-                })}</span>
+                <span>{formatTimestamp(message.timestamp)}</span>
             </div>
         )}
-        {message.geolocation && (
-            <div className="mt-2 flex items-start gap-2 text-xs text-slate-500">
-                <MapPinIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                <div className="flex flex-col gap-0.5">
-                    <span>{message.geolocation.city && message.geolocation.country 
-                        ? `${message.geolocation.city}, ${message.geolocation.country}` 
-                        : message.geolocation.country || 'Location captured'}</span>
-                    <span className="font-mono text-[10px]">
-                        {message.geolocation.latitude.toFixed(6)}, {message.geolocation.longitude.toFixed(6)}
-                        {message.geolocation.timezone && ` • ${message.geolocation.timezone}`}
-                    </span>
+        {message.geolocation && (() => {
+            const location = formatLocation(message.geolocation);
+            return location ? (
+                <div className="mt-2 flex items-start gap-2 text-xs text-slate-500">
+                    <MapPinIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                    <div className="flex flex-col gap-0.5">
+                        <span>{location.display}</span>
+                        <span className="font-mono text-[10px]">{location.coords}</span>
+                    </div>
                 </div>
-            </div>
-        )}
+            ) : null;
+        })()}
         {message.seal && (
             <div className="mt-4 border-t border-slate-700 pt-3">
                 <h4 className="flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-sky-400/80">
@@ -207,32 +223,19 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
                   <div ref={pdfContentRef} className="p-8 bg-[#0A192F] text-slate-300">
                       {message.timestamp && (
                           <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px' }}>
-                              <strong>Report Generated:</strong> {new Date(message.timestamp).toLocaleString('en-US', { 
-                                  year: 'numeric', 
-                                  month: 'short', 
-                                  day: 'numeric', 
-                                  hour: '2-digit', 
-                                  minute: '2-digit', 
-                                  second: '2-digit',
-                                  timeZoneName: 'short'
-                              })}
+                              <strong>Report Generated:</strong> {formatTimestamp(message.timestamp)}
                           </div>
                       )}
-                      {message.geolocation && (
-                          <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '16px' }}>
-                              <strong>Jurisdiction:</strong> {message.geolocation.city && message.geolocation.country 
-                                  ? `${message.geolocation.city}, ${message.geolocation.country}` 
-                                  : message.geolocation.country || 'Location captured'}
-                              <br />
-                              <strong>Coordinates:</strong> {message.geolocation.latitude.toFixed(6)}, {message.geolocation.longitude.toFixed(6)}
-                              {message.geolocation.timezone && (
-                                  <>
-                                      <br />
-                                      <strong>Timezone:</strong> {message.geolocation.timezone}
-                                  </>
-                              )}
-                          </div>
-                      )}
+                      {message.geolocation && (() => {
+                          const location = formatLocation(message.geolocation);
+                          return location ? (
+                              <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '16px' }}>
+                                  <strong>Jurisdiction:</strong> {location.display}
+                                  <br />
+                                  <strong>Coordinates:</strong> {location.coords}
+                              </div>
+                          ) : null;
+                      })()}
                       {renderPdfContent(message.pdfContent)}
                   </div>
                 </div>

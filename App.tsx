@@ -40,15 +40,28 @@ const getGeolocation = (): Promise<GeolocationData | null> => {
         // Try to get location details via reverse geocoding
         let city, country;
         try {
+          // Add proper headers and timeout for Nominatim API
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+          
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`,
+            {
+              headers: {
+                'User-Agent': 'VerumOmnis/1.0'
+              },
+              signal: controller.signal
+            }
           );
+          clearTimeout(timeoutId);
+          
           if (response.ok) {
             const data = await response.json();
             city = data.address?.city || data.address?.town || data.address?.village;
             country = data.address?.country;
           }
         } catch (error) {
+          // Silently fail for geocoding - coordinates are still available
           console.warn('Could not fetch location details:', error);
         }
 
@@ -69,6 +82,31 @@ const getGeolocation = (): Promise<GeolocationData | null> => {
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   });
+};
+
+const buildLocationContext = (geolocation: GeolocationData, timestamp: string): string => {
+  const locationDetails = [
+    `- Coordinates: ${geolocation.latitude.toFixed(6)}, ${geolocation.longitude.toFixed(6)}`,
+    `- Accuracy: ${geolocation.accuracy.toFixed(0)}m`,
+  ];
+  
+  if (geolocation.city) {
+    locationDetails.push(`- City: ${geolocation.city}`);
+  }
+  if (geolocation.country) {
+    locationDetails.push(`- Country: ${geolocation.country}`);
+  }
+  if (geolocation.timezone) {
+    locationDetails.push(`- Timezone: ${geolocation.timezone}`);
+  }
+  locationDetails.push(`- Report Timestamp: ${timestamp}`);
+
+  return `
+
+CURRENT USER LOCATION CONTEXT:
+${locationDetails.join('\n')}
+
+Use this location information to determine the applicable jurisdiction for legal analysis. Consider local, state/provincial, and national laws that apply to this geographic location.`;
 };
 
 async function generateSha512(message: string): Promise<string> {
@@ -192,11 +230,9 @@ const App: React.FC = () => {
       const contents = [...history.slice(1), userTurn]; // remove my initial welcome message from history but keep user's first message
 
       // Prepare system instruction with location context
-      let contextualSystemInstruction = systemInstruction;
-      if (geolocation) {
-        const locationInfo = `\n\nCURRENT USER LOCATION CONTEXT:\n- Coordinates: ${geolocation.latitude.toFixed(6)}, ${geolocation.longitude.toFixed(6)}\n- Accuracy: ${geolocation.accuracy.toFixed(0)}m${geolocation.city ? `\n- City: ${geolocation.city}` : ''}${geolocation.country ? `\n- Country: ${geolocation.country}` : ''}${geolocation.timezone ? `\n- Timezone: ${geolocation.timezone}` : ''}\n- Report Timestamp: ${timestamp}\n\nUse this location information to determine the applicable jurisdiction for legal analysis. Consider local, state/provincial, and national laws that apply to this geographic location.`;
-        contextualSystemInstruction = systemInstruction + locationInfo;
-      }
+      const contextualSystemInstruction = geolocation 
+        ? systemInstruction + buildLocationContext(geolocation, timestamp)
+        : systemInstruction;
 
       const result = await ai.current.models.generateContentStream({
           model: 'gemini-3-pro-preview',
