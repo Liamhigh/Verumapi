@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Part, GoogleGenAI, Content, GenerateContentResponse } from '@google/genai';
 import { ChatMessage as Message } from './types';
-import { systemInstruction } from './services/geminiService';
+import { streamAIResponse, Content, Part } from './services/aiService';
 import Header from './components/Header';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
@@ -61,20 +60,7 @@ const App: React.FC = () => {
   ]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const ai = useRef<GoogleGenAI | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    try {
-       if (!process.env.API_KEY) {
-        throw new Error("API_KEY environment variable not set.");
-      }
-      ai.current = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    } catch (e) {
-      setError("Failed to initialize AI session. Please check your API key.");
-      console.error(e);
-    }
-  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -107,8 +93,6 @@ const App: React.FC = () => {
     setMessages((prev) => [...prev, aiMessagePlaceholder]);
 
     try {
-      if (!ai.current) throw new Error("AI not initialized.");
-    
       const history: Content[] = currentMessages.map(msg => {
           const parts: Part[] = [];
           if (msg.text) {
@@ -128,19 +112,13 @@ const App: React.FC = () => {
       const userTurn = history.pop();
       if (!userTurn) throw new Error("Cannot send empty message.");
       
-      const contents = [...history.slice(1), userTurn]; // remove my initial welcome message from history but keep user's first message
+      const contents = [...history.slice(1), userTurn]; 
 
-      const result = await ai.current.models.generateContentStream({
-          model: 'gemini-3-pro-preview',
-          contents,
-          config: {
-              systemInstruction,
-          }
-      });
+      const stream = streamAIResponse(contents);
       
       let fullResponse = '';
-      for await (const chunk of result) {
-        const chunkText = (chunk as GenerateContentResponse).text;
+      for await (const chunk of stream) {
+        const chunkText = chunk.text;
         if (chunkText) {
           fullResponse += chunkText;
           setMessages((prevMessages) => {
@@ -199,7 +177,7 @@ const App: React.FC = () => {
         } else {
           if (message.trim().startsWith('{')) {
             errorMessage = 'An unexpected error occurred. More details are in the browser console.';
-            console.error('Gemini API Error:', message);
+            console.error('AI Provider Error:', message);
           } else {
             errorMessage = message;
           }
