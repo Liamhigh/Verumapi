@@ -26,30 +26,14 @@ jobs:
         run: npm run build
 
       - name: Deploy to Firebase Hosting
-
         uses: firebase/actions/hosting-deploy@v1
-
         with:
-
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-
           channelId: live
-
           projectId: verumapi
 
-
-
       - name: Setup Java 17
-
-        uses: actions/setup-java@v4
-
-        with:
-
-          distribution: temurin
-
-          java-version: '17'
         uses: actions/setup-java@v4
         with:
           distribution: temurin
