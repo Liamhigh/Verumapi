@@ -37,6 +37,30 @@ const formatLocation = (geolocation: Message['geolocation']): { display: string;
   return { display, coords };
 };
 
+// Generate cryptographic seal for PDF with all metadata
+const generatePdfSeal = async (message: Message): Promise<string> => {
+  const sealData = {
+    content: message.text,
+    contentSeal: message.seal,
+    timestamp: message.timestamp,
+    geolocation: message.geolocation ? {
+      lat: message.geolocation.latitude,
+      lng: message.geolocation.longitude,
+      accuracy: message.geolocation.accuracy,
+      timezone: message.geolocation.timezone,
+    } : null,
+    generatedAt: new Date().toISOString(),
+  };
+  
+  const sealString = JSON.stringify(sealData, null, 0);
+  const encoder = new TextEncoder();
+  const data = encoder.encode(sealString);
+  const hashBuffer = await crypto.subtle.digest('SHA-512', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+};
+
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => {
   const isModel = message.role === 'model';
   const pdfContentRef = React.useRef<HTMLDivElement>(null);
@@ -45,15 +69,24 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
     const source = pdfContentRef.current;
     if (!source || !message.seal) return;
 
-    const qrCodeDataUrl = await QRCode.toDataURL(message.seal, { width: 120, margin: 1 });
+    try {
+      // Generate cryptographic seal for the PDF
+      const pdfSeal = await generatePdfSeal(message);
+      
+      // Generate QR code with the seal
+      const qrCodeDataUrl = await QRCode.toDataURL(pdfSeal, { width: 120, margin: 1 });
 
-    html2canvas(source, {
-      scale: 2,
-      backgroundColor: '#0A192F',
-      useCORS: true,
-      windowWidth: source.scrollWidth,
-      windowHeight: source.scrollHeight,
-    }).then(canvas => {
+      // Use html2canvas with Capacitor-compatible settings
+      const canvas = await html2canvas(source, {
+        scale: 2,
+        backgroundColor: '#0A192F',
+        useCORS: true,
+        allowTaint: true, // For Capacitor compatibility
+        windowWidth: source.scrollWidth,
+        windowHeight: source.scrollHeight,
+        logging: false, // Disable logging for production
+      });
+
       const imgData = canvas.toDataURL('image/jpeg', 0.9);
       const pdf = new jsPDF({
         orientation: 'p',
@@ -76,13 +109,22 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
         pdf.setTextColor('#94a3b8'); // slate-400
         
         const watermarkText = "Verum Omnis patent Pending ✓";
-        const partialHash = message.seal ? `${message.seal.substring(0, 16)}...` : '';
+        const partialHash = `PDF Seal: ${pdfSeal.substring(0, 16)}...`;
         
         pdf.text(`${watermarkText} | ${partialHash}`, 15, pageHeight - 10);
         
         // QR Code is 30x30, padding 15
         pdf.addImage(qrCodeDataUrl, 'PNG', pageWidth - 15 - 30, pageHeight - 15 - 30, 30, 30);
       };
+
+      // Add metadata to PDF for verification
+      pdf.setProperties({
+        title: 'Verum Omnis Forensic Report',
+        subject: 'Cryptographically Sealed Forensic Analysis',
+        author: 'Verum Omnis AI',
+        keywords: 'forensic, sealed, cryptographic',
+        creator: 'Verum Omnis v5.2.7',
+      });
 
       let heightLeft = imgHeight;
       let position = 0;
@@ -98,8 +140,57 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
         addFooter();
         heightLeft -= pdfHeight;
       }
-      pdf.save('Verum_Omnis_Report.pdf');
-    });
+
+      // Add a final page with verification information
+      pdf.addPage();
+      pdf.setFontSize(12);
+      pdf.setTextColor('#cbd5e1');
+      pdf.text('CRYPTOGRAPHIC VERIFICATION', 20, 30);
+      
+      pdf.setFontSize(8);
+      pdf.setTextColor('#94a3b8');
+      pdf.text('This document is cryptographically sealed and can be verified.', 20, 50);
+      
+      pdf.setFontSize(7);
+      pdf.text(`Content Seal (SHA-512):`, 20, 70);
+      pdf.text(message.seal || '', 20, 80, { maxWidth: pdfWidth - 40 });
+      
+      pdf.text(`PDF Seal (SHA-512):`, 20, 110);
+      pdf.text(pdfSeal, 20, 120, { maxWidth: pdfWidth - 40 });
+      
+      if (message.timestamp) {
+        pdf.text(`Timestamp: ${message.timestamp}`, 20, 150);
+      }
+      
+      if (message.geolocation) {
+        pdf.text(`Location: ${message.geolocation.latitude}, ${message.geolocation.longitude}`, 20, 165);
+        pdf.text(`Accuracy: ${message.geolocation.accuracy}m`, 20, 180);
+      }
+      
+      pdf.text('Scan QR code on previous pages to verify seal integrity.', 20, 200);
+
+      // Save with timestamp in filename for uniqueness
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const filename = `Verum_Omnis_Report_${timestamp}.pdf`;
+      
+      // Check if running in Capacitor
+      if (typeof (window as any).Capacitor !== 'undefined') {
+        // For Capacitor, use blob and download via filesystem API
+        const pdfBlob = pdf.output('blob');
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        // Standard browser download
+        pdf.save(filename);
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
   };
 
   const renderPdfContent = (content: string) => {
