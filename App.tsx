@@ -136,7 +136,21 @@ const App: React.FC = () => {
 
       if (fullResponse) {
           const seal = await generateSha512(fullResponse);
-          const actions = parseActions(fullResponse);
+          
+          let actions: string[] = [];
+          try {
+            actions = parseActions(fullResponse).filter(action => {
+              // Validate action text - must be non-empty and not contain incomplete JSON
+              if (!action || action.trim().length === 0) return false;
+              // Check for incomplete JSON patterns
+              if (action.includes('{') && !action.includes('}')) return false;
+              if (action.includes('[') && !action.includes(']')) return false;
+              return true;
+            });
+          } catch (e) {
+            console.warn('Action parsing failed:', e);
+            actions = [];
+          }
 
           let isPdf = false;
           let pdfContent: string | undefined = undefined;
