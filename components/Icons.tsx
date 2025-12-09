@@ -1,14 +1,8 @@
 
 import React from 'react';
 
-export const VerumOmnisLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <circle cx="50" cy="50" r="48" fill="white"/>
-        <path d="M50 2C23.49 2 2 23.49 2 50s21.49 48 48 48 48-21.49 48-48S76.51 2 50 2zm0 8c22.091 0 40 17.909 40 40S72.091 90 50 90 10 72.091 10 50 27.909 10 50 10z" fill="#0A192F"/>
-        <path d="M50,10 C72.09139,10 90,27.90861 90,50 C90,56.541 88.196,62.662 85,67.882 C76.353,59.34 63.858,54.191 50,53.076 C36.142,54.191 23.647,59.34 15,67.882 C11.804,62.662 10,56.541 10,50 C10,27.90861 27.90861,10 50,10 Z" fill="white" />
-        <path d="M89.324,59.256 C82.855,47.013 70.21,38.65 50,37.031 C29.79,38.65 17.145,47.013 10.676,59.256 C16.591,73.57 29.8,82.97 50,83.924 C70.2,82.97 83.409,73.57 89.324,59.256 Z" fill="white" />
-        <path d="M50 90c-22.091 0-40-17.909-40-40 0-6.541 1.804-12.662 5-17.882 8.647 8.542 21.142 13.691 35 14.805 13.858-1.114 26.353-6.263 35-14.805 3.196 5.22 5 11.341 5 17.882 0 22.091-17.909 40-40 40z" fill="#0A192F"/>
-    </svg>
+export const VerumOmnisLogo = (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
+    <img src="/main_logo.png" alt="Verum Omnis" {...props} />
 );
 
 export const UserIcon = (props: React.SVGProps<SVGSVGElement>) => (
