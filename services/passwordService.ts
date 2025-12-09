@@ -5,10 +5,15 @@
 
 /**
  * Generate a cryptographically secure random password
- * @param length The length of the password to generate (default: 68)
+ * @param length The length of the password to generate (default: 68, minimum: 4)
  * @returns A secure random password string
  */
 export function generateSecurePassword(length: number = 68): string {
+  // Validate minimum length to ensure at least one character from each category
+  if (length < 4) {
+    throw new Error('Password length must be at least 4 characters');
+  }
+  
   // Use uppercase, lowercase, numbers, and special characters
   const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const lowercase = 'abcdefghijklmnopqrstuvwxyz';
