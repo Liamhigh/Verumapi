@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Part, GoogleGenAI, Content, GenerateContentResponse } from '@google/genai';
 import { ChatMessage as Message } from './types';
-import { systemInstruction } from './services/geminiService';
+import { systemInstruction } from './services/openaiService';
 import Header from './components/Header';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
@@ -131,7 +131,7 @@ const App: React.FC = () => {
       const contents = [...history.slice(1), userTurn]; // remove my initial welcome message from history but keep user's first message
 
       const result = await ai.current.models.generateContentStream({
-          model: 'gemini-3-pro-preview',
+          model: 'openai-3-pro-preview',
           contents,
           config: {
               systemInstruction,
@@ -199,7 +199,7 @@ const App: React.FC = () => {
         } else {
           if (message.trim().startsWith('{')) {
             errorMessage = 'An unexpected error occurred. More details are in the browser console.';
-            console.error('Gemini API Error:', message);
+            console.error('openai API Error:', message);
           } else {
             errorMessage = message;
           }
