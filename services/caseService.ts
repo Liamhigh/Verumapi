@@ -119,8 +119,8 @@ export const caseService = {
       return '';
     }
 
-    const messagesSummary = caseData.messages
-      .slice(0, 10) // Include up to 10 most recent messages for context
+    const recentMessages = caseData.messages.slice(-10); // Get last 10 messages
+    const messagesSummary = recentMessages
       .map((msg, idx) => {
         const role = msg.role === 'user' ? 'User' : 'Verum Omnis';
         const timestamp = msg.timestamp ? ` [${new Date(msg.timestamp).toLocaleString()}]` : '';

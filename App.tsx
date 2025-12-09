@@ -153,19 +153,24 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const ai = useRef<GoogleGenAI | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const initialGreeting: Message = {
+    role: 'model',
+    text: "Verum Omnis session initialized. Forensic protocols engaged. Ready to apply AI forensics for truth in accordance with my constitutional mandate. How may I assist you?"
+  };
 
   // Load existing case on mount
   useEffect(() => {
     const existingCase = caseService.getCurrentCase();
     if (existingCase && existingCase.messages.length > 0) {
       setCurrentCase(existingCase);
-      setMessages([messages[0], ...existingCase.messages]);
+      setMessages([initialGreeting, ...existingCase.messages]);
     } else {
       // Create a new case if none exists
       const newCase = caseService.createNewCase();
       setCurrentCase(newCase);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   useEffect(() => {
     try {
@@ -196,21 +201,16 @@ const App: React.FC = () => {
       caseService.saveCurrentCase(updatedCase);
       setCurrentCase(updatedCase);
     }
-  }, [messages]);
+  }, [messages, currentCase]);
 
   const handleClearChat = useCallback(() => {
     if (window.confirm('Are you sure you want to clear the chat and start a new case? The current case will be saved.')) {
       const newCase = caseService.createNewCase();
       setCurrentCase(newCase);
-      setMessages([
-        {
-          role: 'model',
-          text: "Verum Omnis session initialized. Forensic protocols engaged. Ready to apply AI forensics for truth in accordance with my constitutional mandate. How may I assist you?"
-        }
-      ]);
+      setMessages([initialGreeting]);
       setError(null);
     }
-  }, []);
+  }, [initialGreeting]);
 
   const handleSendMessage = useCallback(async (text: string, file: File | null) => {
     if (loading) return;
