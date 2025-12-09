@@ -1,8 +1,8 @@
 
 import React from 'react';
 
-export const VerumOmnisLogo = (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
-    <img src="/main_logo.png" alt="Verum Omnis" {...props} />
+export const VerumOmnisLogo = ({ className, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => (
+    <img src="/main_logo.png" alt="Verum Omnis" className={className} {...props} />
 );
 
 export const UserIcon = (props: React.SVGProps<SVGSVGElement>) => (
