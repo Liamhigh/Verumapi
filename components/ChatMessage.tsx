@@ -158,6 +158,13 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
                     Forensic Seal
                 </h4>
                 <p className="mt-1 font-mono text-xs text-slate-500 break-words">{message.seal}</p>
+                <button
+                    onClick={handleDownloadPdf}
+                    className="mt-3 flex items-center justify-center gap-2 w-full text-center p-2 text-xs bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-slate-700 transition-colors duration-200 text-sky-300"
+                >
+                    <DownloadIcon className="h-4 w-4" />
+                    Print Sealed Report
+                </button>
             </div>
         )}
         {message.actions && message.actions.length > 0 && (
@@ -174,23 +181,11 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
             </div>
         )}
         {message.isPdfContent && message.pdfContent && (
-            <>
-                <div style={{ position: 'fixed', left: '-9999px', top: 0, width: '800px', fontFamily: 'sans-serif' }}>
-                  <div ref={pdfContentRef} className="p-8 bg-[#0A192F] text-slate-300">
-                      {renderPdfContent(message.pdfContent)}
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                    <button
-                        onClick={handleDownloadPdf}
-                        className="flex items-center justify-center gap-2 w-full text-center p-3 text-sm bg-slate-700/50 border border-slate-600 rounded-lg hover:bg-slate-700 transition-colors duration-200 text-sky-300"
-                    >
-                        <DownloadIcon className="h-5 w-5" />
-                        Download Forensic Report as PDF
-                    </button>
-                </div>
-            </>
+            <div style={{ position: 'fixed', left: '-9999px', top: 0, width: '800px', fontFamily: 'sans-serif' }}>
+              <div ref={pdfContentRef} className="p-8 bg-[#0A192F] text-slate-300">
+                  {renderPdfContent(message.pdfContent)}
+              </div>
+            </div>
         )}
       </div>
     </div>
