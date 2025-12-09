@@ -228,7 +228,7 @@ const App: React.FC = () => {
                   onClick={() => setShowPasswordGenerator(!showPasswordGenerator)}
                   className="w-full bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 text-slate-200 font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
-                  {showPasswordGenerator ? '✕ Close' : '🔑 Secure Password Generator'}
+                  {showPasswordGenerator ? '✕ Close' : '🔑 Base64 Secret Generator'}
                 </button>
               </div>
               {showPasswordGenerator && (

@@ -1,63 +1,48 @@
 /**
  * Password Service
- * Generates cryptographically secure passwords
+ * Generates cryptographically secure Base64-encoded secrets
  */
 
 /**
- * Generate a cryptographically secure random password
- * @param length The length of the password to generate (default: 68, minimum: 4)
- * @returns A secure random password string
+ * Generate a cryptographically secure Base64-encoded secret
+ * @param length The length of the Base64 string to generate (default: 68)
+ * @returns A secure Base64-encoded random string
  */
 export function generateSecurePassword(length: number = 68): string {
-  // Validate minimum length to ensure at least one character from each category
-  if (length < 4) {
-    throw new Error('Password length must be at least 4 characters');
+  // Validate minimum length
+  if (length < 1) {
+    throw new Error('Password length must be at least 1 character');
   }
   
-  // Use uppercase, lowercase, numbers, and special characters
-  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const lowercase = 'abcdefghijklmnopqrstuvwxyz';
-  const numbers = '0123456789';
-  const special = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+  // Calculate how many random bytes we need
+  // Base64 encoding produces 4 characters for every 3 bytes
+  // To get exactly 'length' characters, we need: (length * 3) / 4 bytes
+  // We'll generate extra and then trim to exact length
+  const bytesNeeded = Math.ceil((length * 3) / 4);
   
-  // Combine all character sets
-  const allChars = uppercase + lowercase + numbers + special;
+  // Generate cryptographically secure random bytes
+  const randomBytes = new Uint8Array(bytesNeeded);
+  crypto.getRandomValues(randomBytes);
   
-  // Use crypto.getRandomValues for cryptographically secure random numbers
-  const randomValues = new Uint32Array(length);
-  crypto.getRandomValues(randomValues);
+  // Convert to Base64
+  let base64 = btoa(String.fromCharCode(...randomBytes));
   
-  let password = '';
+  // Remove any padding characters (=) and trim to exact length
+  base64 = base64.replace(/=/g, '');
   
-  // Ensure at least one character from each category
-  const categories = [uppercase, lowercase, numbers, special];
-  for (let i = 0; i < categories.length; i++) {
-    const category = categories[i];
-    const randomIndex = randomValues[i] % category.length;
-    password += category[randomIndex];
+  // If we have more characters than needed, trim to exact length
+  if (base64.length > length) {
+    base64 = base64.substring(0, length);
+  } else if (base64.length < length) {
+    // If we need more characters, generate additional bytes
+    while (base64.length < length) {
+      const additionalBytes = new Uint8Array(3);
+      crypto.getRandomValues(additionalBytes);
+      const additionalB64 = btoa(String.fromCharCode(...additionalBytes)).replace(/=/g, '');
+      base64 += additionalB64;
+    }
+    base64 = base64.substring(0, length);
   }
   
-  // Fill the rest with random characters from all sets
-  for (let i = categories.length; i < length; i++) {
-    const randomIndex = randomValues[i] % allChars.length;
-    password += allChars[randomIndex];
-  }
-  
-  // Shuffle the password to avoid predictable patterns
-  return shuffleString(password, randomValues);
-}
-
-/**
- * Shuffle a string using Fisher-Yates algorithm with provided random values
- * @param str The string to shuffle
- * @param randomValues Cryptographically secure random values
- * @returns Shuffled string
- */
-function shuffleString(str: string, randomValues: Uint32Array): string {
-  const arr = str.split('');
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = randomValues[i] % (i + 1);
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr.join('');
+  return base64;
 }

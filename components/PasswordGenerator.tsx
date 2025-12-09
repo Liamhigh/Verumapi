@@ -36,7 +36,7 @@ const PasswordGenerator: React.FC<PasswordGeneratorProps> = ({ onClose }) => {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <KeyIcon className="w-5 h-5 text-cyan-400" />
-          <h3 className="text-lg font-semibold text-slate-200">Secure Password Generator</h3>
+          <h3 className="text-lg font-semibold text-slate-200">Base64 Secret Generator</h3>
         </div>
         {onClose && (
           <button
@@ -51,7 +51,7 @@ const PasswordGenerator: React.FC<PasswordGeneratorProps> = ({ onClose }) => {
       <div className="space-y-4">
         <div>
           <label htmlFor="length" className="block text-sm text-slate-400 mb-2">
-            Password Length: {length} characters
+            Secret Length: {length} characters
           </label>
           <input
             id="length"
@@ -72,7 +72,7 @@ const PasswordGenerator: React.FC<PasswordGeneratorProps> = ({ onClose }) => {
           onClick={handleGenerate}
           className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
         >
-          Generate Password
+          Generate Base64 Secret
         </button>
 
         {password && (
@@ -97,7 +97,7 @@ const PasswordGenerator: React.FC<PasswordGeneratorProps> = ({ onClose }) => {
               )}
             </button>
             <p className="text-xs text-slate-500 text-center">
-              Password generated using cryptographically secure random values
+              Base64-encoded secret generated using cryptographically secure random values
             </p>
           </div>
         )}
