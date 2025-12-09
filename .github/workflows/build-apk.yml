@@ -1,0 +1,96 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+      - 'copilot/**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build web app
+        run: npm run build
+        env:
+          NODE_ENV: production
+      
+      - name: Setup Capacitor
+        run: |
+          npm install -g @capacitor/cli
+          npx cap --version || echo "Capacitor not initialized yet"
+      
+      - name: Check if Capacitor is initialized
+        id: check-capacitor
+        run: |
+          if [ -f "capacitor.config.ts" ] || [ -f "capacitor.config.json" ]; then
+            echo "initialized=true" >> $GITHUB_OUTPUT
+            echo "Capacitor is initialized"
+          else
+            echo "initialized=false" >> $GITHUB_OUTPUT
+            echo "Capacitor is not initialized - skipping Android build"
+          fi
+      
+      - name: Sync Capacitor (if initialized)
+        if: steps.check-capacitor.outputs.initialized == 'true'
+        run: npx cap sync android
+      
+      - name: Build Android Debug APK (if initialized)
+        if: steps.check-capacitor.outputs.initialized == 'true'
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+      
+      - name: Upload Debug APK (if initialized)
+        if: steps.check-capacitor.outputs.initialized == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+      
+      - name: Build summary
+        run: |
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check-capacitor.outputs.initialized }}" == "true" ]; then
+            echo "✅ Web app built successfully" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Android APK built successfully" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
+            echo "- Debug APK available in workflow artifacts" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ Web app built successfully" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ Android build skipped - Capacitor not initialized" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+            echo "To enable Android builds:" >> $GITHUB_STEP_SUMMARY
+            echo "1. Run \`npm install @capacitor/core @capacitor/cli @capacitor/android\`" >> $GITHUB_STEP_SUMMARY
+            echo "2. Run \`npx cap init\`" >> $GITHUB_STEP_SUMMARY
+            echo "3. Run \`npx cap add android\`" >> $GITHUB_STEP_SUMMARY
+            echo "4. Commit the generated files" >> $GITHUB_STEP_SUMMARY
+          fi
