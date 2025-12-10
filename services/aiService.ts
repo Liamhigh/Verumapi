@@ -15,6 +15,13 @@ const getAIClient = (): GoogleGenAI => {
     // @ts-ignore - process.env.API_KEY is defined by Vite at build time
     const apiKey = process.env.API_KEY;
     
+    console.log('API Key check:', {
+      exists: !!apiKey,
+      length: apiKey?.length || 0,
+      prefix: apiKey?.substring(0, 10) || 'none',
+      isUndefinedString: apiKey === 'undefined'
+    });
+    
     if (!apiKey || apiKey === 'undefined') {
       throw new Error("API key is not configured. Please set your Gemini API key in the environment. For local development, create a .env.local file with OPENAI_API_KEY=your_key. For deployment, set it in your hosting platform's environment variables.");
     }
