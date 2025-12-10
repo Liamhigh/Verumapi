@@ -12,10 +12,13 @@ let ai: GoogleGenAI;
 // Singleton for the AI client
 const getAIClient = (): GoogleGenAI => {
   if (!ai) {
-    if (!process.env.API_KEY) {
+    // @ts-ignore - process.env is injected by Vite at build time
+    const apiKey = typeof process !== 'undefined' && process.env?.API_KEY ? process.env.API_KEY : undefined;
+    
+    if (!apiKey) {
       throw new Error("API key is not configured. Please set your Gemini API key in the environment. For local development, create a .env.local file with OPENAI_API_KEY=your_key. For deployment, set it in your hosting platform's environment variables.");
     }
-    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    ai = new GoogleGenAI({ apiKey });
   }
   return ai;
 };
