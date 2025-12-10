@@ -263,26 +263,21 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
         <section className="mb-12">
           <h2 className="text-3xl font-bold text-slate-100 mb-4">📂 What's Next?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <a href="#" className="p-4 bg-slate-800/50 border border-slate-700 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 block">
+            <div className="p-4 bg-slate-800/50 border border-slate-700 rounded-lg">
               <strong className="text-slate-100">Documentation</strong>
               <p className="text-slate-400 text-sm mt-1">Technical architecture and integration guides</p>
-            </a>
-            <a href="#" className="p-4 bg-slate-800/50 border border-slate-700 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 block">
+              <p className="text-slate-500 text-xs mt-2 italic">Coming soon</p>
+            </div>
+            <div className="p-4 bg-slate-800/50 border border-slate-700 rounded-lg">
               <strong className="text-slate-100">API Access</strong>
               <p className="text-slate-400 text-sm mt-1">Developer resources and endpoints</p>
-            </a>
-            <a href="#" className="p-4 bg-slate-800/50 border border-slate-700 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 block">
+              <p className="text-slate-500 text-xs mt-2 italic">Coming soon</p>
+            </div>
+            <div className="p-4 bg-slate-800/50 border border-slate-700 rounded-lg">
               <strong className="text-slate-100">Constitutional Framework</strong>
               <p className="text-slate-400 text-sm mt-1">Read the immutable governance structure</p>
-            </a>
-            <a href="#" className="p-4 bg-slate-800/50 border border-slate-700 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 block">
-              <strong className="text-slate-100">Case Studies</strong>
-              <p className="text-slate-400 text-sm mt-1">Real-world applications and validations</p>
-            </a>
-            <a href="#" className="p-4 bg-slate-800/50 border border-slate-700 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 block">
-              <strong className="text-slate-100">Contact & Support</strong>
-              <p className="text-slate-400 text-sm mt-1">Get in touch with the Verum Omnis team</p>
-            </a>
+              <p className="text-slate-500 text-xs mt-2 italic">Coming soon</p>
+            </div>
           </div>
         </section>
 
