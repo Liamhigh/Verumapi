@@ -4,6 +4,7 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import QRCode from 'qrcode';
 import { ChatMessage as Message } from '../types';
+import { formatGeolocation, getGoogleMapsLink } from '../services/geolocationService';
 import { UserIcon, VerumOmnisLogo, PaperclipIcon, ShieldCheckIcon, DownloadIcon } from './Icons';
 
 interface ChatMessageProps {
@@ -156,6 +157,18 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
                 <span className="truncate font-mono">{message.file.name}</span>
             </div>
         )}
+        {message.timestamp && (
+            <div className="mt-2 text-xs text-slate-500 flex flex-wrap gap-x-3 gap-y-1">
+                <span>📅 {new Date(message.timestamp).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                {message.geolocation && (
+                    <span title={formatGeolocation(message.geolocation)}>
+                        📍 <a href={getGoogleMapsLink(message.geolocation)} target="_blank" rel="noopener noreferrer" className="text-sky-400 hover:text-sky-300 underline">
+                            {message.geolocation.latitude.toFixed(4)}, {message.geolocation.longitude.toFixed(4)}
+                        </a>
+                    </span>
+                )}
+            </div>
+        )}
         {message.seal && (
             <div className="mt-4 border-t border-slate-700 pt-3">
                 <h4 className="flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-sky-400/80">
@@ -203,7 +216,10 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
                 <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: '#1e293b', borderRadius: '8px', borderLeft: '4px solid #38bdf8' }}>
                   <p style={{color: '#94a3b8', fontSize: '11px', margin: '0 0 8px 0', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600'}}>Document Metadata</p>
                   <p style={{color: '#cbd5e1', fontSize: '12px', margin: '4px 0', lineHeight: '1.6'}}><strong>Report ID:</strong> {message.seal?.substring(0, 16)}</p>
-                  <p style={{color: '#cbd5e1', fontSize: '12px', margin: '4px 0', lineHeight: '1.6'}}><strong>Generated:</strong> {new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' })}</p>
+                  <p style={{color: '#cbd5e1', fontSize: '12px', margin: '4px 0', lineHeight: '1.6'}}><strong>Generated:</strong> {message.timestamp ? new Date(message.timestamp).toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short', timeZoneName: 'short' }) : new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' })}</p>
+                  {message.geolocation && (
+                    <p style={{color: '#cbd5e1', fontSize: '12px', margin: '4px 0', lineHeight: '1.6'}}><strong>Location:</strong> {formatGeolocation(message.geolocation)}</p>
+                  )}
                   <p style={{color: '#cbd5e1', fontSize: '12px', margin: '4px 0', lineHeight: '1.6'}}><strong>Seal Type:</strong> SHA-512 Forensic Hash</p>
                 </div>
                 <div style={{ marginBottom: '32px' }}>
