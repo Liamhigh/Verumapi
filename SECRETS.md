@@ -4,13 +4,15 @@ This document lists all the GitHub Secrets you need to configure for automated d
 
 ## Required Secrets
 
+The deployment workflow requires the following secrets to be configured in GitHub Actions:
+
 ### Firebase Hosting Secrets
 
-1. **FIREBASE_SERVICE_ACCOUNT**
+1. **FIREBASE_SERVICE_ACCOUNT_VERUM_OMNIS_V2** (Required for web deployment)
    - **Type**: JSON (multiline)
    - **How to get it**:
      1. Go to [Firebase Console](https://console.firebase.com/)
-     2. Select your project
+     2. Select your project (verum-omnis-v2)
      3. Go to Project Settings → Service Accounts
      4. Click "Generate New Private Key"
      5. Copy the entire JSON file content
@@ -18,20 +20,16 @@ This document lists all the GitHub Secrets you need to configure for automated d
      ```json
      {
        "type": "service_account",
-       "project_id": "your-project-id",
+       "project_id": "verum-omnis-v2",
        "private_key_id": "...",
        "private_key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",
        "client_email": "...",
        ...
      }
      ```
+   - **Note**: The project ID is hardcoded in the workflow as `verum-omnis-v2`
 
-2. **FIREBASE_PROJECT_ID**
-   - **Type**: String
-   - **Example**: `verum-omnis-app`
-   - **How to get it**: Found in your Firebase project settings URL or in the service account JSON
-
-### Android Signing Secrets
+### Android Signing Secrets (Optional - Required only for signed APK builds)
 
 3. **ANDROID_KEYSTORE_BASE64**
    - **Type**: String (base64 encoded)
@@ -59,14 +57,16 @@ This document lists all the GitHub Secrets you need to configure for automated d
 6. **ANDROID_KEY_ALIAS**
    - **Type**: String
    - **Example**: `upload`
+   - **Default**: `upload` (if not specified in secrets)
    - **Note**: The alias you used when creating the keystore
 
 ### Application Secrets
 
-7. **OPENAI_API_KEY**
+2. **OPENAI_API_KEY**
    - **Type**: String
-   - **Example**: `sk-proj-...`
-   - **How to get it**: Get your API key from https://platform.openai.com/api-keys
+   - **Example**: `sk-proj-...` or a Gemini API key
+   - **How to get it**: This project uses Google Gemini AI. Get your API key from Google AI Studio
+   - **Note**: Despite the name "OPENAI_API_KEY", this is actually a Gemini API key due to the SDK alias in the project
 
 ## How to Add Secrets to GitHub
 
@@ -83,14 +83,15 @@ This document lists all the GitHub Secrets you need to configure for automated d
 
 Before triggering the workflow, ensure:
 
-- [ ] All 7 secrets are added to GitHub Actions
-- [ ] FIREBASE_SERVICE_ACCOUNT is valid JSON
-- [ ] FIREBASE_PROJECT_ID matches your Firebase project
-- [ ] ANDROID_KEYSTORE_BASE64 is properly base64 encoded
-- [ ] ANDROID_KEYSTORE_PASSWORD matches what you used to create the keystore
-- [ ] ANDROID_KEY_PASSWORD matches what you used to create the keystore  
-- [ ] ANDROID_KEY_ALIAS matches your keystore alias
-- [ ] OPENAI_API_KEY is a valid API key
+- [ ] **FIREBASE_SERVICE_ACCOUNT_VERUM_OMNIS_V2** is added and is valid JSON
+- [ ] **OPENAI_API_KEY** is added (Gemini API key)
+- [ ] For Android builds (optional):
+  - [ ] **ANDROID_KEYSTORE_BASE64** is properly base64 encoded
+  - [ ] **ANDROID_KEYSTORE_PASSWORD** matches what you used to create the keystore
+  - [ ] **ANDROID_KEY_PASSWORD** matches what you used to create the keystore  
+  - [ ] **ANDROID_KEY_ALIAS** matches your keystore alias (or omit to use default "upload")
+
+**Note**: The workflow will build an unsigned APK if Android signing secrets are not provided.
 
 ## Testing the Workflow
 
