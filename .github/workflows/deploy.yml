@@ -119,6 +119,7 @@ jobs:
           VERSION=$(grep '"version"' package.json | cut -d'"' -f4)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=v$VERSION-$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+          echo "build_date=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -129,11 +130,12 @@ jobs:
             ## Verum Omnis Release
             
             **Version:** ${{ steps.version.outputs.version }}
-            **Build Date:** ${{ github.event.head_commit.timestamp }}
+            **Build Date:** ${{ steps.version.outputs.build_date }}
             **Commit:** ${{ github.sha }}
+            **Triggered by:** ${{ github.event_name }}
             
             ### Changes
-            ${{ github.event.head_commit.message }}
+            ${{ github.event.head_commit.message || 'Manual workflow trigger' }}
             
             ### Downloads
             - Android APK: app-release.apk
