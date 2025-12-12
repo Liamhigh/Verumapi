@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChatMessage as Message } from './types';
 import { streamAIResponse, Content, Part } from './services/aiService';
+import { sealDocument } from './services/documentSealService';
 import Header from './components/Header';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
@@ -76,10 +77,17 @@ const App: React.FC = () => {
     setError(null);
     setLoading(true);
 
-    let fileData: { name: string; type: string; data: string } | undefined;
+    let fileData: { name: string; type: string; data: string; seal?: any } | undefined;
     if (file) {
         const data = await fileToBase64(file);
-        fileData = { name: file.name, type: file.type, data };
+        // Seal the document with cryptographic hash
+        const sealedDoc = await sealDocument(file.name, file.type, data, file.size);
+        fileData = { 
+          name: sealedDoc.name, 
+          type: sealedDoc.type, 
+          data: sealedDoc.data,
+          seal: sealedDoc.seal
+        };
     }
 
     const userMessage: Message = { 
