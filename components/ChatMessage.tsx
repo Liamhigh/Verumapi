@@ -151,9 +151,44 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
       <div className={`prose prose-invert prose-p:text-slate-300 prose-p:my-0 max-w-full rounded-xl p-4 break-words ${isModel ? 'bg-slate-800' : 'bg-sky-900/50'}`}>
         {message.text === '' && isModel ? <TypingIndicator /> : <p className="whitespace-pre-wrap break-words">{message.text}</p>}
         {message.file && (
-            <div className="mt-3 flex items-center gap-2 rounded-lg border border-slate-600/70 bg-slate-700/50 p-2 text-xs text-slate-400">
-                <PaperclipIcon className="h-4 w-4 flex-shrink-0" />
-                <span className="truncate font-mono">{message.file.name}</span>
+            <div className="mt-3 space-y-2">
+                <div className="flex items-center gap-2 rounded-lg border border-slate-600/70 bg-slate-700/50 p-2 text-xs text-slate-400">
+                    <PaperclipIcon className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate font-mono">{message.file.name}</span>
+                </div>
+                {message.file.seal && (
+                    <div className="rounded-lg border border-emerald-600/50 bg-emerald-900/20 p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                            <ShieldCheckIcon className="h-4 w-4 text-emerald-400" />
+                            <span className="text-xs font-bold tracking-wider uppercase text-emerald-400">
+                                {message.file.seal.sealed ? 'Previously Sealed Document' : 'Document Sealed'}
+                            </span>
+                        </div>
+                        <div className="space-y-1 text-xs text-slate-400">
+                            <div className="flex justify-between">
+                                <span className="text-slate-500">Seal Hash:</span>
+                                <span className="font-mono text-slate-400 truncate max-w-[200px]" title={message.file.seal.hash}>
+                                    {message.file.seal.hash.substring(0, 12)}...{message.file.seal.hash.substring(message.file.seal.hash.length - 8)}
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-500">Sealed:</span>
+                                <span className="text-slate-400">{new Date(message.file.seal.timestamp).toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-500">Size:</span>
+                                <span className="text-slate-400">{(message.file.seal.size / 1024).toFixed(2)} KB</span>
+                            </div>
+                            {message.file.seal.sealed && (
+                                <div className="mt-2 pt-2 border-t border-emerald-800/50">
+                                    <p className="text-xs text-emerald-400/80 italic">
+                                        ✓ This document was previously sealed by Verum Omnis and has not been re-sealed
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         )}
         {message.seal && (
@@ -205,6 +240,15 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
                   <p style={{color: '#cbd5e1', fontSize: '12px', margin: '4px 0', lineHeight: '1.6'}}><strong>Report ID:</strong> {message.seal?.substring(0, 16)}</p>
                   <p style={{color: '#cbd5e1', fontSize: '12px', margin: '4px 0', lineHeight: '1.6'}}><strong>Generated:</strong> {new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' })}</p>
                   <p style={{color: '#cbd5e1', fontSize: '12px', margin: '4px 0', lineHeight: '1.6'}}><strong>Seal Type:</strong> SHA-512 Forensic Hash</p>
+                  {message.file?.seal && (
+                    <>
+                      <p style={{color: '#cbd5e1', fontSize: '12px', margin: '4px 0', lineHeight: '1.6'}}><strong>Attached Document:</strong> {message.file.seal.filename}</p>
+                      <p style={{color: '#cbd5e1', fontSize: '12px', margin: '4px 0', lineHeight: '1.6'}}><strong>Document Seal:</strong> {message.file.seal.hash.substring(0, 16)}...</p>
+                      {message.file.seal.sealed && (
+                        <p style={{color: '#10b981', fontSize: '11px', margin: '8px 0 0 0', fontStyle: 'italic'}}>✓ Document was previously sealed by Verum Omnis</p>
+                      )}
+                    </>
+                  )}
                 </div>
                 <div style={{ marginBottom: '32px' }}>
                   <h2 style={{color: '#e2e8f0', fontSize: '20px', fontWeight: 'bold', margin: '24px 0 16px 0', paddingBottom: '8px', borderBottom: '2px solid #334155'}}>Analysis Content</h2>
