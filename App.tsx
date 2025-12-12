@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChatMessage as Message } from './types';
 import { streamAIResponse, Content, Part } from './services/aiService';
+import { getCurrentGeolocation } from './services/geolocationService';
 import Header from './components/Header';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
@@ -82,16 +83,27 @@ const App: React.FC = () => {
         fileData = { name: file.name, type: file.type, data };
     }
 
+    // Capture timestamp and geolocation for forensic records
+    const timestamp = new Date().toISOString();
+    const geolocation = await getCurrentGeolocation();
+
     const userMessage: Message = { 
       role: 'user', 
       text,
+      timestamp,
+      geolocation: geolocation ?? undefined,
       file: fileData,
     };
     
     const currentMessages = [...messages, userMessage];
     setMessages(currentMessages);
 
-    const aiMessagePlaceholder: Message = { role: 'model', text: '' };
+    const aiMessagePlaceholder: Message = { 
+      role: 'model', 
+      text: '',
+      timestamp: new Date().toISOString(),
+      geolocation: geolocation ?? undefined,
+    };
     setMessages((prev) => [...prev, aiMessagePlaceholder]);
 
     try {
