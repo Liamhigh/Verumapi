@@ -10,7 +10,7 @@ export interface ChatMessage {
     timestamp: number;
   };
   file?: {
-    name:string;
+    name: string;
     type: string;
     data: string;
   };

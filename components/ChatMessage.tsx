@@ -12,6 +12,17 @@ interface ChatMessageProps {
   onActionClick: (actionText: string) => void;
 }
 
+const formatTimestamp = (timestamp: string | undefined): string => {
+  if (!timestamp) {
+    return new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
+  }
+  return new Date(timestamp).toLocaleString('en-US', { 
+    dateStyle: 'long', 
+    timeStyle: 'short', 
+    timeZoneName: 'short' 
+  });
+};
+
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => {
   const isModel = message.role === 'model';
   const pdfContentRef = React.useRef<HTMLDivElement>(null);
@@ -216,7 +227,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onActionClick }) => 
                 <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: '#1e293b', borderRadius: '8px', borderLeft: '4px solid #38bdf8' }}>
                   <p style={{color: '#94a3b8', fontSize: '11px', margin: '0 0 8px 0', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600'}}>Document Metadata</p>
                   <p style={{color: '#cbd5e1', fontSize: '12px', margin: '4px 0', lineHeight: '1.6'}}><strong>Report ID:</strong> {message.seal?.substring(0, 16)}</p>
-                  <p style={{color: '#cbd5e1', fontSize: '12px', margin: '4px 0', lineHeight: '1.6'}}><strong>Generated:</strong> {message.timestamp ? new Date(message.timestamp).toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short', timeZoneName: 'short' }) : new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' })}</p>
+                  <p style={{color: '#cbd5e1', fontSize: '12px', margin: '4px 0', lineHeight: '1.6'}}><strong>Generated:</strong> {formatTimestamp(message.timestamp)}</p>
                   {message.geolocation && (
                     <p style={{color: '#cbd5e1', fontSize: '12px', margin: '4px 0', lineHeight: '1.6'}}><strong>Location:</strong> {formatGeolocation(message.geolocation)}</p>
                   )}

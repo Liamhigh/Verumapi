@@ -91,7 +91,7 @@ const App: React.FC = () => {
       role: 'user', 
       text,
       timestamp,
-      geolocation: geolocation || undefined,
+      geolocation: geolocation ?? undefined,
       file: fileData,
     };
     
@@ -102,7 +102,7 @@ const App: React.FC = () => {
       role: 'model', 
       text: '',
       timestamp: new Date().toISOString(),
-      geolocation: geolocation || undefined,
+      geolocation: geolocation ?? undefined,
     };
     setMessages((prev) => [...prev, aiMessagePlaceholder]);
 
